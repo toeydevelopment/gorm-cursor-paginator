@@ -1,8 +1,9 @@
 package paginator
 
 import (
-	"gorm.io/gorm"
 	"reflect"
+
+	"gorm.io/gorm"
 
 	"github.com/pilagod/gorm-cursor-paginator/v2/internal/util"
 )

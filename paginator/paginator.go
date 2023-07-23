@@ -20,12 +20,16 @@ func New(opts ...Option) *Paginator {
 	return p
 }
 
+const afterKey = "a"
+const beforeKey = "b"
+
 // Paginator a builder doing pagination
 type Paginator struct {
-	cursor Cursor
-	rules  []Rule
-	limit  int
-	order  Order
+	autoCursor string
+	cursor     Cursor
+	rules      []Rule
+	limit      int
+	order      Order
 }
 
 // SetRules sets paging rules
@@ -63,6 +67,19 @@ func (p *Paginator) SetAfterCursor(afterCursor string) {
 // SetBeforeCursor sets paging before cursor
 func (p *Paginator) SetBeforeCursor(beforeCursor string) {
 	p.cursor.Before = &beforeCursor
+}
+
+// SetAutoCursor sets paging before autoCursor
+func (p *Paginator) SetAutoCursor(autoCursor string) {
+	p.autoCursor = autoCursor
+	// safe check
+	if strings.HasPrefix(autoCursor, afterKey) {
+		after := autoCursor[1:]
+		p.cursor.After = &after
+	} else {
+		before := autoCursor[1:]
+		p.cursor.Before = &before
+	}
 }
 
 // Paginate paginates data
@@ -200,6 +217,14 @@ func (p *Paginator) isBackward() bool {
 	return !p.isForward() && p.cursor.Before != nil
 }
 
+func addAfterKeyPrefix(cursor string) string {
+	return fmt.Sprintf("%s:%s", afterKey, cursor)
+}
+
+func addBeforeKeyPrefix(cursor string) string {
+	return fmt.Sprintf("%s:%s", beforeKey, cursor)
+}
+
 func (p *Paginator) appendPagingQuery(db *gorm.DB, fields []interface{}) *gorm.DB {
 	stmt := db
 	stmt = stmt.Limit(p.limit + 1)
@@ -257,6 +282,7 @@ func (p *Paginator) encodeCursor(elems reflect.Value, hasMore bool) (result Curs
 		if err != nil {
 			return Cursor{}, err
 		}
+		c = addAfterKeyPrefix(c)
 		result.After = &c
 	}
 	// encode before cursor
@@ -265,6 +291,7 @@ func (p *Paginator) encodeCursor(elems reflect.Value, hasMore bool) (result Curs
 		if err != nil {
 			return Cursor{}, err
 		}
+		c = addBeforeKeyPrefix(c)
 		result.Before = &c
 	}
 	return
