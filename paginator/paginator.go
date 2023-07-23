@@ -20,8 +20,8 @@ func New(opts ...Option) *Paginator {
 	return p
 }
 
-const afterKey = "a"
-const beforeKey = "b"
+const afterKey = "a:"
+const beforeKey = "b:"
 
 // Paginator a builder doing pagination
 type Paginator struct {
@@ -77,10 +77,10 @@ func (p *Paginator) SetAutoCursor(autoCursor string) {
 		return
 	}
 	if strings.HasPrefix(autoCursor, afterKey) {
-		after := autoCursor[1:]
+		after := autoCursor[len(afterKey):]
 		p.cursor.After = &after
 	} else {
-		before := autoCursor[1:]
+		before := autoCursor[len(beforeKey):]
 		p.cursor.Before = &before
 	}
 }
@@ -221,11 +221,11 @@ func (p *Paginator) isBackward() bool {
 }
 
 func addAfterKeyPrefix(cursor string) string {
-	return fmt.Sprintf("%s:%s", afterKey, cursor)
+	return fmt.Sprintf("%s%s", afterKey, cursor)
 }
 
 func addBeforeKeyPrefix(cursor string) string {
-	return fmt.Sprintf("%s:%s", beforeKey, cursor)
+	return fmt.Sprintf("%s%s", beforeKey, cursor)
 }
 
 func (p *Paginator) appendPagingQuery(db *gorm.DB, fields []interface{}) *gorm.DB {
