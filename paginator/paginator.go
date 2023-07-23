@@ -73,6 +73,9 @@ func (p *Paginator) SetBeforeCursor(beforeCursor string) {
 func (p *Paginator) SetAutoCursor(autoCursor string) {
 	p.autoCursor = autoCursor
 	// safe check
+	if len(autoCursor) < 2 {
+		return
+	}
 	if strings.HasPrefix(autoCursor, afterKey) {
 		after := autoCursor[1:]
 		p.cursor.After = &after
